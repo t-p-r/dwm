@@ -1,34 +1,29 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int borderpx  = 8;        /* border pixel of windows */
-static const unsigned int gappx     = 8;        /* gaps between windows */
+static const unsigned int borderpx  = 4;        /* border pixel of windows */
+static const unsigned int gappx     = 12;        /* gaps between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayonleft = 0;    /* 0: systray in the right corner, >0: systray on left of status text */
-static const unsigned int systrayspacing = 2;   /* systray spacing */
+static const unsigned int systrayspacing = 12;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
 static const int showsystray        = 1;        /* 0 means no systray */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "Cascadia Code:size=11" };
-static const char dmenufont[]       = "Cascadia Code:size=10";
+static const int vertpad            = 8;       /* vertical padding of bar */
+static const int sidepad            = 12;       /* horizontal padding of bar */
+static const char *fonts[]          = { "JetBrains Mono Nerd Font:size=11" };
+static const char dmenufont[]       = "JetBrains Mono Nerd Font:size=11";
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
+static const char col_cyan[]        = "#01678c";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
-};
-
-static const char *const autostart[] = {
-	"ibus-daemon -drxR", NULL,
-	"/usr/lib/polkit-kde-authentication-agent-1", NULL,
-	"feh --bg-scale /usr/share/wallpapers/Next/contents/images_dark/2560x1440.png", NULL,
-	NULL /* terminate */
 };
 
 /* tagging */
@@ -39,13 +34,24 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     isfloating   monitor    float x,y,w,h         floatborderpx*/
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1,        50,50,500,500,        5 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1,        50,50,500,500,        5 },
+	/* class      	instance    title       		tags mask     isfloating   monitor    float x,y,w,h         floatborderpx*/
+	{ "Firefox",    NULL,		"Open Folder",      0,            1,           -1,        640,320,1280,800,        -1 },
+	{ "Firefox",    NULL,       "Open File",       	0,            1,           -1,        640,320,1280,800,        -1 },
+	{ "Code",  		NULL,       "Open Folder",      0,       	  1,           -1,        640,320,1280,800,        -1 },
+	{ "Code",  		NULL,       "Open File",       	0,       	  1,           -1,        640,320,1280,800,        -1 },
+	{ "Volctl",  	NULL,       "Preferences",      0,       	  1,           -1,        800,320,960,800,        -1 },
+	{ "Deluge",     NULL,       "Add Torrents", 	0,       	  1,           -1,        800,400,960,640,        -1 },
+	{ "Deluge",     NULL,       "Preferences", 		0,       	  1,           -1,        800,400,960,640,        -1 },
+	{ "Deluge",  	NULL,       NULL,       		1 << 7,       0,           -1 },
+	{ "discord",  	NULL,       NULL,       		1 << 8,       0,           -1 },
+	{ "zalo.exe",  	NULL,       NULL,       		1 << 6,       0,           -1 },
+	{ "Xfce4-power-manager-settings",  		NULL,       "Power Manager",       	0,       	  1,           -1,        800,400,960,640,        -1 },
+	{ "Pavucontrol",  	  					NULL,       "Volume Control",       0,       	  1,           -1,        800,400,960,640,        -1 },
+	{ "polkit-kde-authentication-agent-1",  NULL,    "Authentication Required", 0,       	  1,           -1,        800,600,960,240,        -1 },
 };
 
 /* layout(s) */
-static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
+static const float mfact     = 0.5; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
@@ -54,11 +60,11 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[\\]",      dwindle },
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
-	{ "[@]",      spiral }
+	{ "[@]",      spiral },
+	{ "[\\]",      dwindle }
 };
 
 /* key definitions */
@@ -74,32 +80,34 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
-static const char *termcmd[]  = { "alacritty", NULL };
-static const char *thunar_cmd[]  = { "thunar", NULL };
+static const char *dmenucmd[] 			= { "dmenu_run", "-m", 
+											dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", 
+											col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *termcmd[]  			= { "alacritty", NULL };
+static const char *filecmd[]  			= { "alacritty", "-e", "ranger", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY|ShiftMask,             XK_d,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = thunar_cmd } },
+	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = filecmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
-	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+	// { MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
+	// { MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
-	{ MODKEY,                       XK_Return, zoom,           {0} },
+	// { MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_q,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_r,      setlayout,      {.v = &layouts[3]} },
-	{ MODKEY|ShiftMask,             XK_r,      setlayout,      {.v = &layouts[4]} },
-	{ MODKEY,                       XK_space,  setlayout,      {0} },
-	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	// { MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
+	// { MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
+	// { MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	// { MODKEY,                       XK_r,      setlayout,      {.v = &layouts[3]} },
+	// { MODKEY|ShiftMask,             XK_r,      setlayout,      {.v = &layouts[4]} },
+	// { MODKEY,                       XK_space,  setlayout,      {0} },
+	// { MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
@@ -118,7 +126,7 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_7,                      6)
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
-	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
+	// { MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 
 /* button definitions */
